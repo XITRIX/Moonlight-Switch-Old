@@ -1,5 +1,6 @@
 ######## 	Includes 	########
-include $(current_dir)/borealis/borealis.mk
+include $(TOPDIR)/third-party/borealis/borealis.mk
+include $(TOPDIR)/third-party/moonlight-wrapper/makefile.mk
 
 mkfile_path	:=	$(abspath $(lastword $(MAKEFILE_LIST)))
 current_dir	:=	$(THIRD_PARTY_PATH)

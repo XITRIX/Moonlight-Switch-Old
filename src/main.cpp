@@ -23,10 +23,6 @@
 #include <borealis.hpp>
 #include <string>
 
-#include "custom_layout_tab.hpp"
-#include "sample_installer_page.hpp"
-#include "sample_loading_page.hpp"
-
 namespace i18n = brls::i18n; // for loadTranslations() and getStr()
 using namespace i18n::literals; // for _i18n
 
@@ -60,131 +56,23 @@ int main(int argc, char* argv[])
 
     brls::List* testList = new brls::List();
 
-    brls::ListItem* dialogItem = new brls::ListItem("main/pozznx/open"_i18n);
-    dialogItem->getClickEvent()->subscribe([](brls::View* view) {
-        brls::Dialog* dialog = new brls::Dialog("main/pozznx/warning"_i18n);
-
-        brls::GenericEvent::Callback closeCallback = [dialog](brls::View* view) {
-            dialog->close();
-            brls::Application::notify("main/pozznx/running"_i18n);
-        };
-
-        std::string continueStr = "main/pozznx/continue"_i18n;
-
-        dialog->addButton(continueStr, closeCallback);
-        dialog->addButton(continueStr, closeCallback);
-        dialog->addButton(continueStr, closeCallback);
-
-        dialog->setCancelable(false);
-
-        dialog->open();
+    brls::InputListItem* hostIp = new brls::InputListItem("main/add_host/buttons/host_ip"_i18n, "10.0.0.19", "");
+    brls::ListItem* connectItem = new brls::ListItem("main/add_host/buttons/connect"_i18n);
+    connectItem->getClickEvent()->subscribe([](brls::View* view) {
+        
     });
 
-    brls::ListItem* notificationItem = new brls::ListItem("main/notify"_i18n);
-    notificationItem->getClickEvent()->subscribe([](brls::View* view) {
-        std::string notification = NOTIFICATIONS[std::rand() % NOTIFICATIONS.size()];
-        brls::Application::notify(notification);
-    });
+    testList->addView(hostIp);
+    testList->addView(new brls::ListItemGroupSpacing());
+    testList->addView(connectItem);
 
-    brls::ListItem* themeItem = new brls::ListItem("main/tv/resolution"_i18n);
-    themeItem->setValue("main/tv/automatic"_i18n);
-
-    brls::ListItem* i18nItem = new brls::ListItem(i18n::getStr("main/i18n/title", i18n::getCurrentLocale(), "main/i18n/lang"_i18n));
-
-    brls::SelectListItem* jankItem = new brls::SelectListItem(
-        "main/jank/jank"_i18n,
-        {
-            "main/jank/native"_i18n,
-            "main/jank/minimal"_i18n,
-            "main/jank/regular"_i18n,
-            "main/jank/maximum"_i18n,
-            "main/jank/saxophone"_i18n,
-            "main/jank/vista"_i18n,
-            "main/jank/ios"_i18n,
-        });
-
-    brls::ListItem* crashItem = new brls::ListItem("main/divide/title"_i18n, "main/divide/description"_i18n);
-    crashItem->getClickEvent()->subscribe([](brls::View* view) { brls::Application::crash("main/divide/crash"_i18n); });
-
-    brls::ListItem* popupItem = new brls::ListItem("popup/open"_i18n);
-    popupItem->getClickEvent()->subscribe([](brls::View* view) {
-        brls::TabFrame* popupTabFrame = new brls::TabFrame();
-        popupTabFrame->addTab("popup/red"_i18n, new brls::Rectangle(nvgRGB(255, 0, 0)));
-        popupTabFrame->addTab("popup/green"_i18n, new brls::Rectangle(nvgRGB(0, 255, 0)));
-        popupTabFrame->addTab("popup/blue"_i18n, new brls::Rectangle(nvgRGB(0, 0, 255)));
-        brls::PopupFrame::open("popup/title"_i18n, BOREALIS_ASSET("icon/borealis.jpg"), popupTabFrame, "popup/subtitle/left"_i18n, "popup/subtitle/right"_i18n);
-    });
-
-    brls::ListItem* installerItem = new brls::ListItem("installer/open"_i18n);
-    installerItem->getClickEvent()->subscribe([](brls::View* view) {
-        brls::StagedAppletFrame* stagedFrame = new brls::StagedAppletFrame();
-        stagedFrame->setTitle("installer/title"_i18n);
-
-        stagedFrame->addStage(new SampleInstallerPage(stagedFrame, "installer/stage1/button"_i18n));
-        stagedFrame->addStage(new SampleLoadingPage(stagedFrame));
-        stagedFrame->addStage(new SampleInstallerPage(stagedFrame, "installer/stage3/button"_i18n));
-
-        brls::Application::pushView(stagedFrame);
-    });
-
-    brls::SelectListItem* layerSelectItem = new brls::SelectListItem("main/layers/title"_i18n, { "main/layers/layer1"_i18n, "main/layers/layer2"_i18n });
-
-    testList->addView(dialogItem);
-    testList->addView(notificationItem);
-    testList->addView(themeItem);
-    testList->addView(i18nItem);
-    testList->addView(jankItem);
-    testList->addView(crashItem);
-    testList->addView(installerItem);
-    testList->addView(popupItem);
-
-    brls::Label* testLabel = new brls::Label(brls::LabelStyle::REGULAR, "main/more"_i18n, true);
-    testList->addView(testLabel);
-
-    brls::ListItem* actionTestItem = new brls::ListItem("main/actions/title"_i18n);
-    actionTestItem->registerAction("main/actions/notify"_i18n, brls::Key::L, [] {
-        brls::Application::notify("main/actions/triggered"_i18n);
-        return true;
-    });
-    testList->addView(actionTestItem);
-
-    brls::LayerView* testLayers = new brls::LayerView();
-    brls::List* layerList1      = new brls::List();
-    brls::List* layerList2      = new brls::List();
-
-    layerList1->addView(new brls::Header("main/layers/layer1"_i18n, false));
-    layerList1->addView(new brls::ListItem("main/layers/item1"_i18n));
-    layerList1->addView(new brls::ListItem("main/layers/item2"_i18n));
-    layerList1->addView(new brls::ListItem("main/layers/item3"_i18n));
-
-    layerList2->addView(new brls::Header("main/layers/layer2"_i18n, false));
-    layerList2->addView(new brls::ListItem("main/layers/item1"_i18n));
-    layerList2->addView(new brls::ListItem("main/layers/item2"_i18n));
-    layerList2->addView(new brls::ListItem("main/layers/item3"_i18n));
-
-    testLayers->addLayer(layerList1);
-    testLayers->addLayer(layerList2);
-
-    layerSelectItem->getValueSelectedEvent()->subscribe([=](size_t selection) {
-        testLayers->changeLayer(selection);
-    });
-
-    testList->addView(layerSelectItem);
-
-    rootFrame->addTab("main/tabs/first"_i18n, testList);
-    rootFrame->addTab("main/tabs/second"_i18n, testLayers);
-    rootFrame->addSeparator();
-    rootFrame->addTab("main/tabs/third"_i18n, new brls::Rectangle(nvgRGB(255, 0, 0)));
-    rootFrame->addTab("main/tabs/fourth"_i18n, new brls::Rectangle(nvgRGB(0, 255, 0)));
-    rootFrame->addSeparator();
-    rootFrame->addTab("main/tabs/custom_navigation_tab"_i18n, new CustomLayoutTab());
+    rootFrame->addTab("main/add_host/title"_i18n, testList);
 
     // Add the root view to the stack
     brls::Application::pushView(rootFrame);
 
     // Run the app
-    while (brls::Application::mainLoop())
-        ;
+    while (brls::Application::mainLoop());
 
     // Exit
     return EXIT_SUCCESS;

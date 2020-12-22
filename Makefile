@@ -37,15 +37,15 @@ include $(DEVKITPRO)/libnx/switch_rules
 #   of a homebrew executable (.nro). This is intended to be used for sysmodules.
 #   NACP building is skipped as well.
 #---------------------------------------------------------------------------------
-TARGET		:=	moonlight_switch
+TARGET		:=	Moonlight
 BUILD		:=	build.nx
 SOURCES		:=	src
 DATA		:=	data
 ICON		:=	resources/icon/borealis.jpg
-INCLUDES	:=	src
-APP_TITLE	:=	Moonlight Switch
+INCLUDES	:=	include
+APP_TITLE	:=	Moonlight
 APP_AUTHOR	:=	XITRIX
-APP_VERSION	:=	1.0
+APP_VERSION	:=	0.1
 
 ROMFS				:=	resources
 THIRD_PARTY_PATH	:=	third-party
@@ -56,18 +56,25 @@ BOREALIS_RESOURCES	:=	romfs:/
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
+DEFINES	:=	-DUSE_MBEDTLS_CRYPTO -DHAS_SOCKLEN_T -DDBUS_COMPILATION \
+			-DHAS_POLL -DHAS_FCNTL -D_GNU_SOURCE -DMOONLIGHT_VERSION=\"$(MOONLIGHT_VERSION)\"
+
+CDBG  	+=
 CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
-			$(ARCH) $(DEFINES)
+			$(ARCH) $(DEFINES) $(CDBG)
 
 CFLAGS	+=	$(INCLUDE) -D__SWITCH__ \
 			-DBOREALIS_RESOURCES="\"$(BOREALIS_RESOURCES)\""
 
-CXXFLAGS	:= $(CFLAGS) -std=c++1z -O2 -Wno-volatile
+CXXFLAGS	:= $(CFLAGS) -std=c++1z -O2
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= -lnx -lm
+LIBS	:=  -lcurl -lmbedtls -lmbedx509 -lmbedcrypto \
+	-lavcodec -lavutil -lopus -lz -lexpat \
+	-lglad -lEGL -lglapi -ldrm_nouveau -lglfw3 \
+	-lnx -lswresample -lvpx -ljansson
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -75,8 +82,7 @@ LIBS	:= -lnx -lm
 #---------------------------------------------------------------------------------
 LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
-include $(TOPDIR)/third-party/borealis/borealis.mk
-# include $(TOPDIR)/third-party/borealis/borealis.mk
+include $(TOPDIR)/third-party/makefile.mk
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -119,7 +125,7 @@ export HFILES_BIN	:=	$(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 export INCLUDE	:=	$(foreach dir,$(INCLUDES),-I$(CURDIR)/$(dir)) \
 			$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
-			-I$(CURDIR)/$(BUILD)
+			-I$(CURDIR)/$(BUILD) -I/$(DEVKITPRO)/portlibs/switch/include
 
 export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib)
 
