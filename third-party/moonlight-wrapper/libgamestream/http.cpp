@@ -18,56 +18,65 @@
  */
 
 #include "http.h"
-#include "errors.h"
-#include "client.h"
-#include "CryptoManager.hpp"
-#include "EZLogger.hpp"
 
+#include <curl/curl.h>
 #include <stdbool.h>
 #include <string.h>
 #include <sys/select.h>
-#include <curl/curl.h>
 
-static CURL *curl;
+#include <borealis.hpp>
 
-struct HTTP_DATA {
-    char *memory;
+#include "CryptoManager.hpp"
+#include "EZLogger.hpp"
+#include "client.h"
+#include "errors.h"
+
+static CURL* curl;
+
+struct HTTP_DATA
+{
+    char* memory;
     size_t size;
 };
 
-static size_t _write_curl(void *contents, size_t size, size_t nmemb, void *userp) {
+static size_t _write_curl(void* contents, size_t size, size_t nmemb, void* userp)
+{
     size_t realsize = size * nmemb;
-    HTTP_DATA* mem = (HTTP_DATA *)userp;
-    
-    mem->memory = (char *)realloc(mem->memory, mem->size + realsize + 1);
+    HTTP_DATA* mem  = (HTTP_DATA*)userp;
+
+    mem->memory = (char*)realloc(mem->memory, mem->size + realsize + 1);
     if (mem->memory == NULL)
         return 0;
-    
+
     memcpy(&(mem->memory[mem->size]), contents, realsize);
     mem->size += realsize;
     mem->memory[mem->size] = 0;
     return realsize;
 }
 
-int http_init(const char* key_directory) {
-    if (!curl) {
+int http_init(const char* key_directory)
+{
+    if (!curl)
+    {
         curl_global_init(CURL_GLOBAL_ALL);
         lg::Logger::info("Curl", "%s", curl_version());
-    } else {
+    }
+    else
+    {
         return GS_OK;
     }
-    
+
     curl = curl_easy_init();
-    
+
     if (!curl)
         return GS_FAILED;
-    
+
     char certificateFilePath[4096];
     sprintf(certificateFilePath, "%s/%s", key_directory, CERTIFICATE_FILE_NAME);
-    
+
     char keyFilePath[4096];
     sprintf(&keyFilePath[0], "%s/%s", key_directory, KEY_FILE_NAME);
-    
+
     curl_easy_setopt(curl, CURLOPT_SSL_VERIFYHOST, 0L);
     curl_easy_setopt(curl, CURLOPT_SSLENGINE_DEFAULT, 1L);
     curl_easy_setopt(curl, CURLOPT_SSLCERTTYPE, "PEM");
@@ -78,45 +87,58 @@ int http_init(const char* key_directory) {
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _write_curl);
     curl_easy_setopt(curl, CURLOPT_FAILONERROR, 1L);
     curl_easy_setopt(curl, CURLOPT_SSL_SESSIONID_CACHE, 0L);
-    
+    curl_easy_setopt(curl, CURLOPT_MAXCONNECTS, 0L);
+    curl_easy_setopt(curl, CURLOPT_FRESH_CONNECT, 1L);
+    curl_easy_setopt(curl, CURLOPT_FORBID_REUSE, 1L);
+    curl_easy_setopt(curl, CURLOPT_CONNECTTIMEOUT, 5L);
+    curl_easy_setopt(curl, CURLOPT_NOSIGNAL, 1L);
+
     return GS_OK;
 }
 
-int http_request(char* url, Data* data, HTTPRequestTimeout timeout) {
+int http_request(char* url, Data* data, HTTPRequestTimeout timeout)
+{
     lg::Logger::info("Curl", "Request:\n%s", url);
-    
+
     HTTP_DATA* http_data = (HTTP_DATA*)malloc(sizeof(HTTP_DATA));
-    http_data->memory = (char*)malloc(1);
-    http_data->size = 0;
-    
+    http_data->memory    = (char*)malloc(1);
+    http_data->size      = 0;
+
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, http_data);
     curl_easy_setopt(curl, CURLOPT_URL, url);
     curl_easy_setopt(curl, CURLOPT_TIMEOUT, timeout);
-    
+
     CURLcode res = curl_easy_perform(curl);
-    
-    if (res != CURLE_OK) {
+
+    if (res != CURLE_OK)
+    {
         gs_set_error(curl_easy_strerror(res));
         lg::Logger::error("Curl", "error: %s", gs_error().c_str());
         return GS_FAILED;
-    } else if (http_data->memory == NULL) {
+    }
+    else if (http_data->memory == NULL)
+    {
         lg::Logger::error("Curl", "memory = NULL");
         return GS_OUT_OF_MEMORY;
     }
-    
+
     *data = Data(http_data->memory, http_data->size);
-    
-    if (http_data->size > 3000) {
+
+    if (http_data->size > 3000)
+    {
         lg::Logger::info("Curl", "Response: Ok");
-    } else {
+    }
+    else
+    {
         lg::Logger::info("Curl", "Response:\n%s", http_data->memory);
     }
-    
+
     free(http_data->memory);
     free(http_data);
     return GS_OK;
 }
 
-void http_cleanup() {
+void http_cleanup()
+{
     curl_easy_cleanup(curl);
 }

@@ -42,7 +42,7 @@ BUILD		:=	build.nx
 SOURCES		:=	src
 DATA		:=	data
 ICON		:=	resources/icon/borealis.jpg
-INCLUDES	:=	include
+INCLUDES	:=	src
 APP_TITLE	:=	Moonlight
 APP_AUTHOR	:=	XITRIX
 APP_VERSION	:=	0.1
@@ -83,6 +83,7 @@ LIBS	:=  -lcurl -lmbedtls -lmbedx509 -lmbedcrypto \
 LIBDIRS	:= $(PORTLIBS) $(LIBNX)
 
 include $(TOPDIR)/third-party/makefile.mk
+include $(TOPDIR)/src/makefile.mk
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional

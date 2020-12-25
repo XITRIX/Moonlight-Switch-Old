@@ -2,7 +2,7 @@
 
 #include "OpenSSLCryptoManager.hpp"
 #include "Settings.hpp"
-#include "Logger.hpp"
+#include "EZLogger.hpp"
 #include <string.h>
 #include <cstdlib>
 #include <openssl/aes.h>
@@ -11,7 +11,6 @@
 #include <openssl/pem.h>
 #include <openssl/evp.h>
 #include <openssl/pkcs12.h>
-#include "Log.h"
 
 static Data m_cert;
 static Data m_key;
@@ -131,7 +130,7 @@ Data OpenSSLCryptoManager::signature(Data cert) {
     X509* x509 = PEM_read_bio_X509(bio, NULL, NULL, NULL);
     
     if (!x509) {
-        Logger::error("Crypto", "Unable to parse certificate in memory!");
+        lg::Logger::error("Crypto", "Unable to parse certificate in memory!");
         return Data();
     }
     
@@ -157,7 +156,7 @@ bool OpenSSLCryptoManager::verify_signature(Data data, Data signature, Data cert
     BIO_free(bio);
     
     if (!x509) {
-        Logger::error("Crypto", "Unable to parse certificate in memory...");
+        lg::Logger::error("Crypto", "Unable to parse certificate in memory...");
         return false;
     }
     
@@ -181,7 +180,7 @@ Data OpenSSLCryptoManager::sign_data(Data data, Data key) {
     BIO_free(bio);
     
     if (!pkey) {
-        Logger::error("Crypto", "Unable to parse private key in memory...");
+        lg::Logger::error("Crypto", "Unable to parse private key in memory...");
         return Data();
     }
     
@@ -198,7 +197,7 @@ Data OpenSSLCryptoManager::sign_data(Data data, Data key) {
     
     if (result <= 0) {
         free(signature);
-        Logger::error("Crypto", "Unable to sign data...");
+        lg::Logger::error("Crypto", "Unable to sign data...");
         Data();
     }
     

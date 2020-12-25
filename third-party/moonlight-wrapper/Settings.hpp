@@ -12,6 +12,15 @@ struct Host {
     std::string address;
     std::string hostname;
     std::string mac;
+
+    // bool operator== (const Host &c1) {
+    //     return (mac == c1.mac && mac == c1.mac);
+    // }
+
+    bool operator<(const Host& smk) const 
+    {
+        return mac < smk.mac;
+    }
 };
 
 class Settings {

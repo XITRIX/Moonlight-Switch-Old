@@ -102,7 +102,8 @@ class View
     bool hidden = false;
 
     std::vector<Action> actions;
-
+    
+  public:
     /**
      * Parent user data, typically the index of the view
      * in the internal layout structure

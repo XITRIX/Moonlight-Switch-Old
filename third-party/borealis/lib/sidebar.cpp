@@ -65,7 +65,7 @@ void Sidebar::onChildFocusGained(View* child)
     BoxLayout::onChildFocusGained(child);
 }
 
-SidebarItem* Sidebar::addItem(std::string label, View* view)
+SidebarItem* Sidebar::addItem(std::string label, View* view, int position)
 {
     SidebarItem* item = new SidebarItem(label, this);
     item->setAssociatedView(view);
@@ -73,15 +73,15 @@ SidebarItem* Sidebar::addItem(std::string label, View* view)
     if (this->isEmpty())
         setActive(item);
 
-    this->addView(item);
+    this->addView(item, position);
 
     return item;
 }
 
-void Sidebar::addSeparator()
+void Sidebar::addSeparator(int position)
 {
     SidebarSeparator* separator = new SidebarSeparator();
-    this->addView(separator);
+    this->addView(separator, position);
 }
 
 void Sidebar::setActive(SidebarItem* active)

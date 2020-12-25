@@ -21,7 +21,7 @@ borealis_files = files(
     'lib/sidebar.cpp',
     'lib/animations.cpp',
     'lib/style.cpp',
-    'lib/list.cpp',
+    'lib/bl_list.cpp',
     'lib/label.cpp',
     'lib/crash_frame.cpp',
     'lib/button.cpp',

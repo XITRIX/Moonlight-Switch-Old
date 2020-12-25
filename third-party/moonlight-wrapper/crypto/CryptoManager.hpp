@@ -6,7 +6,7 @@
 #include "MbedTLSCryptoManager.hpp"
 #define CryptoManager MbedTLSCryptoManager
 
-#elif
+#elif defined(USE_OPENSSL_CRYPTO)
 
 #include "OpenSSLCryptoManager.hpp"
 #define CryptoManager OpenSSLCryptoManager

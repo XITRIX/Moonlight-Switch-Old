@@ -124,7 +124,7 @@ class BoxLayout : public View
       * If fill is set to true, the child will
       * fill the remaining space
       */
-    void addView(View* view, bool fill = false, bool resetState = false);
+    void addView(View* view, int position = -1, bool fill = false, bool resetState = false);
 
     /**
       * Removes the view at specified
@@ -148,6 +148,8 @@ class BoxLayout : public View
       * doesn't contain any views
       */
     bool isEmpty();
+
+    int childrenCount();
 
     bool isChildFocused();
 

@@ -69,9 +69,9 @@ void TabFrame::switchToView(View* view)
         this->layout->addView(this->rightPane, true, true); // addView() calls willAppear()
 }
 
-void TabFrame::addTab(std::string label, View* view)
+void TabFrame::addTab(std::string label, View* view, int position)
 {
-    SidebarItem* item = this->sidebar->addItem(label, view);
+    SidebarItem* item = this->sidebar->addItem(label, view, position);
     item->getFocusEvent()->subscribe([this](View* view) {
         if (SidebarItem* item = dynamic_cast<SidebarItem*>(view))
             this->switchToView(item->getAssociatedView());
@@ -85,9 +85,14 @@ void TabFrame::addTab(std::string label, View* view)
     }
 }
 
-void TabFrame::addSeparator()
+int TabFrame::tabsCount()
+{ 
+    return this->sidebar->childrenCount();
+}
+
+void TabFrame::addSeparator(int position)
 {
-    this->sidebar->addSeparator();
+    this->sidebar->addSeparator(position);
 }
 
 View* TabFrame::getDefaultFocus()

@@ -20,7 +20,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <HostTab.hpp>
+#include <Settings.hpp>
+#include <UIMainScreen.hpp>
 #include <borealis.hpp>
+#include <chrono>
+#include <ctime>
+#include <streaming/GameStreamClient.hpp>
 #include <string>
 
 namespace i18n = brls::i18n; // for loadTranslations() and getStr()
@@ -37,10 +43,60 @@ std::vector<std::string> NOTIFICATIONS = {
     "Hmm, Steamed Hams!"
 };
 
+std::map<Host, HostTab*> host_menuitems;
+
+bool firstAdd    = true;
+bool firstSepAdd = true;
+void fillList(brls::TabFrame* frame)
+{
+    brls::List* addHostTab = new brls::List();
+
+    brls::InputListItem* hostIpItem = new brls::InputListItem("main/add_host/buttons/host_ip"_i18n, "10.0.0.19", "");
+    brls::ListItem* connectItem     = new brls::ListItem("main/add_host/buttons/connect"_i18n);
+    connectItem->getClickEvent()->subscribe([hostIpItem, frame](brls::View* view) {
+        connectAndPair(hostIpItem->getValue(), [frame]() { fillList(frame); });
+    });
+
+    addHostTab->addView(hostIpItem);
+    addHostTab->addView(new brls::ListItemGroupSpacing());
+    addHostTab->addView(connectItem);
+
+    auto hosts = Settings::settings()->hosts();
+    if (hosts.size() > 0)
+    {
+        for (auto host = hosts.begin(); host != hosts.end(); host++)
+        {
+            if (host_menuitems.find(*host.base()) == host_menuitems.end())
+			{
+                HostTab* new_host      = new HostTab(*host.base(), [frame]() { fillList(frame); });
+                host_menuitems[*host.base()] = new_host;
+                int index                 = std::distance(hosts.begin(), host);
+                frame->addTab(host.base()->hostname, new_host, index);
+            }
+        }
+        if (firstSepAdd)
+        {
+            brls::Application::notify(std::to_string(frame->tabsCount() - (firstAdd ? 0 : 1)));
+            frame->addSeparator(frame->tabsCount() - (firstAdd ? 0 : 1));
+            firstSepAdd = false;
+        }
+    }
+
+    if (firstAdd)
+        frame->addTab("main/add_host/title"_i18n, addHostTab);
+
+    firstAdd = false;
+}
+
 int main(int argc, char* argv[])
 {
+    srand((unsigned int)std::time(nullptr));
+
     // Init the app
     brls::Logger::setLogLevel(brls::LogLevel::DEBUG);
+
+    Settings::settings()->set_working_dir("sdmc:/switch/moonlight");
+    Settings::settings()->set_write_log(true);
 
     i18n::loadTranslations();
     if (!brls::Application::init("main/name"_i18n))
@@ -54,25 +110,16 @@ int main(int argc, char* argv[])
     rootFrame->setTitle("main/name"_i18n);
     rootFrame->setIcon(BOREALIS_ASSET("icon/borealis.jpg"));
 
-    brls::List* testList = new brls::List();
-
-    brls::InputListItem* hostIp = new brls::InputListItem("main/add_host/buttons/host_ip"_i18n, "10.0.0.19", "");
-    brls::ListItem* connectItem = new brls::ListItem("main/add_host/buttons/connect"_i18n);
-    connectItem->getClickEvent()->subscribe([](brls::View* view) {
-        
-    });
-
-    testList->addView(hostIp);
-    testList->addView(new brls::ListItemGroupSpacing());
-    testList->addView(connectItem);
-
-    rootFrame->addTab("main/add_host/title"_i18n, testList);
+    fillList(rootFrame);
 
     // Add the root view to the stack
     brls::Application::pushView(rootFrame);
 
     // Run the app
-    while (brls::Application::mainLoop());
+    while (brls::Application::mainLoop())
+        ;
+
+    GameStreamClient::client()->stop();
 
     // Exit
     return EXIT_SUCCESS;

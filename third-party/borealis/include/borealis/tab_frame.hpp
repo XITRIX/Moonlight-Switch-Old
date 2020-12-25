@@ -39,8 +39,10 @@ class TabFrame : public AppletFrame
      * before the TabFrame is itself added to
      * the view hierarchy
      */
-    void addTab(std::string label, View* view);
-    void addSeparator();
+    void addTab(std::string label, View* view, int position = -1);
+    void addSeparator(int position = -1);
+
+    int tabsCount();
 
     View* getDefaultFocus() override;
 

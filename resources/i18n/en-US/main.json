@@ -1,6 +1,7 @@
 {
     "name": "Moonlight",
     "tabs": {
+        "known_hosts": "Known hosts",
         "add_host": "Add host",
         "second": "Second tab",
         "third": "Third tab",

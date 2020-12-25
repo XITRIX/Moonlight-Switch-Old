@@ -78,8 +78,8 @@ class Sidebar : public BoxLayout
   public:
     Sidebar();
 
-    SidebarItem* addItem(std::string label, View* view);
-    void addSeparator();
+    SidebarItem* addItem(std::string label, View* view, int position = -1);
+    void addSeparator(int position = -1);
 
     void setActive(SidebarItem* item);
 

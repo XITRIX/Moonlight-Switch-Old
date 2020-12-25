@@ -281,20 +281,26 @@ void BoxLayout::setResize(bool resize)
     this->invalidate();
 }
 
-void BoxLayout::addView(View* view, bool fill, bool resetState)
+void BoxLayout::addView(View* view, int position, bool fill, bool resetState)
 {
     BoxLayoutChild* child = new BoxLayoutChild();
     child->view           = view;
     child->fill           = fill;
 
-    this->children.push_back(child);
+    if (position == -1) position = this->children.size();
+    size_t _position = position;
 
-    size_t position = this->children.size() - 1;
+    this->children.insert(this->children.begin() + position, child); //push_back(child);
 
     size_t* userdata = (size_t*)malloc(sizeof(size_t));
-    *userdata        = position;
+    *userdata        = _position;
 
     view->setParent(this, userdata);
+
+    for (int i = position + 1; i < this->children.size(); i++) 
+    {
+        *(size_t*)this->children[i]->view->parentUserdata = i;
+    }
 
     view->willAppear(resetState);
     this->invalidate();
@@ -308,6 +314,11 @@ View* BoxLayout::getChild(size_t index)
 bool BoxLayout::isEmpty()
 {
     return this->children.size() == 0;
+}
+
+int BoxLayout::childrenCount() 
+{
+    return this->children.size();
 }
 
 bool BoxLayout::isChildFocused()

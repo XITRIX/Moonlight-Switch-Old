@@ -3,20 +3,18 @@ project('borealis_example', ['c', 'cpp'],
     default_options: [ 'buildtype=release', 'strip=true', 'b_ndebug=if-release', 'cpp_std=c++1z' ],
 )
 
-subdir('library')
+subdir('third-party')
 
-example_files = files(
-    'example/main.cpp',
-    'example/sample_installer_page.cpp',
-    'example/sample_loading_page.cpp',
-    'example/custom_layout_tab.cpp',
+src_files = files(
+    'src/main.cpp',
 )
 
 borealis_example = executable(
     'borealis_example',
-    [ example_files, borealis_files ],
+    [ src_files, borealis_files, moonlight_wrapper_files, moonlight_files ],
     dependencies : borealis_dependencies,
     install: true,
-    include_directories: [ borealis_include, include_directories('example')],
-    cpp_args: [ '-g', '-O2', '-DBOREALIS_RESOURCES="./resources/"' ]
+    include_directories: [ borealis_include, moonlight_wrapper_include, moonlight_include, include_directories('src')],
+    cpp_args: [ '-std=c++1z', '-g', '-ffunction-sections', '-O2', '-DBOREALIS_RESOURCES="./resources/"', '-DUSE_OPENSSL_CRYPTO', '-DHAS_SOCKLEN_T', 
+    '-DDBUS_COMPILATION', '-DHAS_POLL', '-DHAS_FCNTL', '-D_GNU_SOURCE', '-DMOONLIGHT_VERSION=\"$(MOONLIGHT_VERSION)\"' ]
 )

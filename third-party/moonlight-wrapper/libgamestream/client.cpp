@@ -27,6 +27,8 @@
 #include <Limelight.h>
 #include "CryptoManager.hpp"
 #include "EZLogger.hpp"
+#include <openssl/rand.h>
+#include <borealis.hpp>
 
 #define CHANNEL_COUNT_STEREO 2
 #define CHANNEL_COUNT_51_SURROUND 6
@@ -34,7 +36,37 @@
 #define CHANNEL_MASK_STEREO 0x3
 #define CHANNEL_MASK_51_SURROUND 0xFC
 
-static char* unique_id = "0123456789ABCDEF";
+#define UNIQUE_FILE_NAME "uniqueid.dat"
+
+#define UNIQUEID_BYTES 8
+#define UNIQUEID_CHARS (UNIQUEID_BYTES*2)
+
+static char unique_id[UNIQUEID_CHARS+1];
+
+static int load_unique_id(const char* keyDirectory) {
+  char uniqueFilePath[4096];
+  sprintf(uniqueFilePath, "%s/%s", keyDirectory, UNIQUE_FILE_NAME);
+
+  FILE *fd = fopen(uniqueFilePath, "r");
+  if (fd == NULL) {
+    unsigned char unique_data[UNIQUEID_BYTES];
+    RAND_bytes(unique_data, UNIQUEID_BYTES);
+    for (int i = 0; i < UNIQUEID_BYTES; i++) {
+      sprintf(unique_id + (i * 2), "%02x", unique_data[i]);
+    }
+    fd = fopen(uniqueFilePath, "w");
+    if (fd == NULL)
+      return GS_FAILED;
+
+    fwrite(unique_id, UNIQUEID_CHARS, 1, fd);
+  } else {
+    fread(unique_id, UNIQUEID_CHARS, 1, fd);
+  }
+  fclose(fd);
+  unique_id[UNIQUEID_CHARS] = 0;
+
+  return GS_OK;
+}
 
 static int load_server_status(PSERVER_DATA server) {
     int ret;
@@ -57,6 +89,8 @@ static int load_server_status(PSERVER_DATA server) {
         
         snprintf(url, sizeof(url), "%s://%s:%d/serverinfo?uniqueid=%s",
                  i == 0 ? "https" : "http", server->serverInfo.address, i == 0 ? 47984 : 47989, unique_id);
+
+        lg::Logger::info("Client", "Start checking server state: \n");
         
         Data data;
         
@@ -142,8 +176,13 @@ static int load_server_status(PSERVER_DATA server) {
             gs_set_error("Moonlight Embedded requires a newer version of GeForce Experience. Please upgrade GFE on your PC and try again.");
             ret = GS_UNSUPPORTED_VERSION;
         }
+
+        if (ret != GS_OK) {
+            lg::Logger::error("Client", "Failed checking state: %s\n", gs_error().c_str());
+        }
     }
     
+    lg::Logger::info("Client", "Server: \n%s, %i\n", server->hostname, server->paired);
     return ret;
 }
 
@@ -493,6 +532,9 @@ cleanup:
 }
 
 int gs_init(PSERVER_DATA server, char *address, const char *keyDirectory, bool unsupported) {
+    if (load_unique_id(keyDirectory) != GS_OK)
+        return GS_FAILED;
+    
     if (!CryptoManager::load_cert_key_pair()) {
         lg::Logger::info("Client", "No certs, generate new...");
         
@@ -501,7 +543,7 @@ int gs_init(PSERVER_DATA server, char *address, const char *keyDirectory, bool u
             return GS_FAILED;
         }
     }
-    
+
     http_init(keyDirectory);
     
     LiInitializeServerInformation(&server->serverInfo);
