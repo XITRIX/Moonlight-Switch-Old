@@ -109,6 +109,7 @@ class View
      * in the internal layout structure
      */
     void* parentUserdata = nullptr;
+    bool terminateByPlusButton = true;
 
   protected:
     int x = 0;

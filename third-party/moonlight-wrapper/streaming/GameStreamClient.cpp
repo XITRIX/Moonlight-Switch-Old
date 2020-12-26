@@ -27,17 +27,19 @@ void GameStreamClient::stop()
 
 void GameStreamClient::wake_up_host(const Host& host, ServerCallback<bool> callback)
 {
-    // perform_async([this, host, callback] {
-    if (WakeOnLanManager::manager()->wake_up_host(host))
-    {
-        // usleep(5'000'000);
-        // nanogui::async([callback] { callback(GSResult<bool>::success(true)); });
-    }
-    else
-    {
-        // nanogui::async([callback] { callback(GSResult<bool>::failure("Wake up failed...")); });
-    }
-    // });
+    Async::instance()->run([this, host, callback] {
+        if (WakeOnLanManager::manager()->wake_up_host(host))
+        {
+            // usleep(5'000'000);
+            // nanogui::async([callback] {  });
+            callback(GSResult<bool>::success(true));
+        }
+        else
+        {
+            // nanogui::async([callback] {  });
+            callback(GSResult<bool>::failure("Wake up failed..."));
+        }
+    });
 }
 
 void GameStreamClient::connect(const std::string& address, ServerCallback<SERVER_DATA> callback)
@@ -100,9 +102,9 @@ void GameStreamClient::unpair(const std::string& address, ServerCallback<bool> c
     Async::instance()->run([this, address, callback] {
         int status = gs_unpair(&m_server_data[address]);
         m_server_data.erase(address);
-        if (status == GS_OK) 
+        if (status == GS_OK)
             callback(GSResult<bool>::success(true));
-        else 
+        else
             callback(GSResult<bool>::failure(gs_error()));
     });
 }
@@ -117,17 +119,20 @@ void GameStreamClient::applist(const std::string& address, ServerCallback<PAPP_L
 
     m_app_list[address] = PAPP_LIST();
 
-    // perform_async([this, address, callback] {
-    int status = gs_applist(&m_server_data[address], &m_app_list[address]);
+    Async::instance()->run([this, address, callback] {
+        int status = gs_applist(&m_server_data[address], &m_app_list[address]);
 
-    // nanogui::async([this, address, callback, status] {
-    //     if (status == GS_OK) {
-    //         callback(GSResult<PAPP_LIST>::success(m_app_list[address]));
-    //     } else {
-    //         callback(GSResult<PAPP_LIST>::failure(gs_error()));
-    //     }
-    // });
-    // });
+        // nanogui::async([this, address, callback, status] {
+        if (status == GS_OK)
+        {
+            callback(GSResult<PAPP_LIST>::success(m_app_list[address]));
+        }
+        else
+        {
+            callback(GSResult<PAPP_LIST>::failure(gs_error()));
+        }
+        // });
+    });
 }
 
 void GameStreamClient::app_boxart(const std::string& address, int app_id, ServerCallback<Data> callback)
@@ -138,18 +143,21 @@ void GameStreamClient::app_boxart(const std::string& address, int app_id, Server
         return;
     }
 
-    // perform_async([this, address, app_id, callback] {
-    Data data;
-    int status = gs_app_boxart(&m_server_data[address], app_id, &data);
+    Async::instance()->run([this, address, app_id, callback] {
+        Data data;
+        int status = gs_app_boxart(&m_server_data[address], app_id, &data);
 
-    // nanogui::async([this, callback, data, status] {
-    //     if (status == GS_OK) {
-    //         callback(GSResult<Data>::success(data));
-    //     } else {
-    //         callback(GSResult<Data>::failure(gs_error()));
-    //     }
-    // });
-    // });
+        // nanogui::async([this, callback, data, status] {
+        if (status == GS_OK)
+        {
+            callback(GSResult<Data>::success(data));
+        }
+        else
+        {
+            callback(GSResult<Data>::failure(gs_error()));
+        }
+        // });
+    });
 }
 
 void GameStreamClient::start(const std::string& address, STREAM_CONFIGURATION config, int app_id, ServerCallback<STREAM_CONFIGURATION> callback)
@@ -162,17 +170,20 @@ void GameStreamClient::start(const std::string& address, STREAM_CONFIGURATION co
 
     m_config = config;
 
-    // perform_async([this, address, app_id, callback] {
-    int status = gs_start_app(&m_server_data[address], &m_config, app_id, Settings::settings()->sops(), Settings::settings()->play_audio(), 0x1);
+    Async::instance()->run([this, address, app_id, callback] {
+        int status = gs_start_app(&m_server_data[address], &m_config, app_id, Settings::settings()->sops(), Settings::settings()->play_audio(), 0x1);
 
-    // nanogui::async([this, callback, status] {
-    //     if (status == GS_OK) {
-    //         callback(GSResult<STREAM_CONFIGURATION>::success(m_config));
-    //     } else {
-    //         callback(GSResult<STREAM_CONFIGURATION>::failure(gs_error()));
-    //     }
-    // });
-    // });
+        // nanogui::async([this, callback, status] {
+        if (status == GS_OK)
+        {
+            callback(GSResult<STREAM_CONFIGURATION>::success(m_config));
+        }
+        else
+        {
+            callback(GSResult<STREAM_CONFIGURATION>::failure(gs_error()));
+        }
+        // });
+    });
 }
 
 void GameStreamClient::quit(const std::string& address, ServerCallback<bool> callback)
@@ -185,15 +196,18 @@ void GameStreamClient::quit(const std::string& address, ServerCallback<bool> cal
 
     auto server_data = m_server_data[address];
 
-    // perform_async([this, server_data, callback] {
-    int status = gs_quit_app((PSERVER_DATA)&server_data);
+    Async::instance()->run([this, server_data, callback] {
+        int status = gs_quit_app((PSERVER_DATA)&server_data);
 
-    // nanogui::async([this, callback, status] {
-    //     if (status == GS_OK) {
-    //         callback(GSResult<bool>::success(true));
-    //     } else {
-    //         callback(GSResult<bool>::failure(gs_error()));
-    //     }
-    // });
-    // });
+        // nanogui::async([this, callback, status] {
+        if (status == GS_OK)
+        {
+            callback(GSResult<bool>::success(true));
+        }
+        else
+        {
+            callback(GSResult<bool>::failure(gs_error()));
+        }
+        // });
+    });
 }

@@ -1,5 +1,6 @@
 #include "HostTab.hpp"
 #include <streaming/GameStreamClient.hpp>
+#include <UIMainScreen.hpp>
 #include <ui/UIError.hpp>
 
 namespace i18n = brls::i18n; // for loadTranslations() and getStr()
@@ -9,10 +10,17 @@ HostTab::HostTab(Host host, std::function<void(void)> reload) {
     this->host = host;
 
     auto connect = new brls::ListItem("host_tab/buttons/connect"_i18n);
-    auto unpair = new brls::ListItem("Unpair"_i18n);
+    auto wakeup = new brls::ListItem("host_tab/buttons/wakeup"_i18n);
+    auto unpair = new brls::ListItem("host_tab/buttons/unpair"_i18n);
 
-    addView(connect);
     addView(unpair);
+    addView(new brls::ListItemGroupSpacing());
+    addView(wakeup);
+    addView(connect);
+
+    connect->getClickEvent()->subscribe([host, reload](auto view) {
+        ui::connect(host.address, reload);
+    });
 
     unpair->getClickEvent()->subscribe([host, reload](auto view) {
         GameStreamClient::client()->unpair(host.address, [reload, host](auto result) {

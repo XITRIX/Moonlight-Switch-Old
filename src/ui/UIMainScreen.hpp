@@ -2,4 +2,8 @@
 #include <string>
 #include <streaming/GameStreamClient.hpp>
 
-void connectAndPair(std::string address, std::function<void(void)> connectResult);
+namespace ui {
+    void connect(std::string address, std::function<void(void)> connectResult);
+    void connectAndPair(std::string address, ServerCallback<Host> connectResult);
+    void apps(Host host);
+}

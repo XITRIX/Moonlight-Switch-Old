@@ -5,6 +5,9 @@
 // #include <nanogui/nanogui.h>
 // #include <nanogui/opengl.h>
 #include <GLFW/glfw3.h>
+#ifdef __SWITCH__ 
+#include <switch.h>
+#endif
 
 #ifdef __SWITCH__
 #include <switch.h>
@@ -169,6 +172,9 @@ bool InputController::gamepad_trigger_is_enabled(int trigger) {
 }
 
 void InputController::send_to_stream() {
+#ifdef __SWITCH__ 
+    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+
     // Mouse
     static bool is_pressed = false, is_released = false;
     static int last_mouse_x = 0, last_mouse_y = 0;
@@ -189,23 +195,23 @@ void InputController::send_to_stream() {
             last_send_mouse_y = mouse_state.y;
         }
         
-        // if (gamepad_button_is_enabled(NANOGUI_GAMEPAD_BUTTON_RIGHT_BUMPER) || gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_RIGHT_TRIGGER)) {
-        //     if (mouse_state.is_pressed) {
-        //         is_released = false;
-        //         LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, BUTTON_RIGHT);
-        //     } else if (!is_released) {
-        //         is_released = true;
-        //         LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, BUTTON_RIGHT);
-        //     }
-        // } else {
-        //     if (mouse_state.is_pressed) {
-        //         is_released = false;
-        //         LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, BUTTON_LEFT);
-        //     } else if (!is_released) {
-        //         is_released = true;
-        //         LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, BUTTON_LEFT);
-        //     }
-        // }
+        if (kHeld & KEY_ZR) { // || gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_RIGHT_TRIGGER)) {
+            if (mouse_state.is_pressed) {
+                is_released = false;
+                LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, BUTTON_RIGHT);
+            } else if (!is_released) {
+                is_released = true;
+                LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, BUTTON_RIGHT);
+            }
+        } else {
+            if (mouse_state.is_pressed) {
+                is_released = false;
+                LiSendMouseButtonEvent(BUTTON_ACTION_PRESS, BUTTON_LEFT);
+            } else if (!is_released) {
+                is_released = true;
+                LiSendMouseButtonEvent(BUTTON_ACTION_RELEASE, BUTTON_LEFT);
+            }
+        }
     } else {
         // bool move_mouse = !gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_LEFT_TRIGGER) && !gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_RIGHT_TRIGGER);
         
@@ -249,28 +255,71 @@ void InputController::send_to_stream() {
     }
     
     // Keyboard
-    static bool send_alt_enter = false;
+    // static bool send_alt_enter = false;
     
-    if (!send_alt_enter && gamepad_combo_is_enabled(GamepadComboAltEnter)) {
-        send_alt_enter = true;
-        LiSendKeyboardEvent(0x0D, KEY_ACTION_DOWN, MODIFIER_ALT);
-    } else if (send_alt_enter && !gamepad_combo_is_enabled(GamepadComboAltEnter)) {
-        send_alt_enter = false;
-        LiSendKeyboardEvent(0x0D, KEY_ACTION_UP, MODIFIER_ALT);
-    }
+    // if (!send_alt_enter && gamepad_combo_is_enabled(GamepadComboAltEnter)) {
+    //     send_alt_enter = true;
+    //     LiSendKeyboardEvent(0x0D, KEY_ACTION_DOWN, MODIFIER_ALT);
+    // } else if (send_alt_enter && !gamepad_combo_is_enabled(GamepadComboAltEnter)) {
+    //     send_alt_enter = false;
+    //     LiSendKeyboardEvent(0x0D, KEY_ACTION_UP, MODIFIER_ALT);
+    // }
     
-    static bool send_escape = false;
+    // static bool send_escape = false;
     
-    if (!send_escape && gamepad_combo_is_enabled(GamepadComboEscape)) {
-        send_escape = true;
-        LiSendKeyboardEvent(0x1B, KEY_ACTION_DOWN, 0);
-    } else if (send_escape && !gamepad_combo_is_enabled(GamepadComboEscape)) {
-        send_escape = false;
-        LiSendKeyboardEvent(0x1B, KEY_ACTION_UP, 0);
-    }
+    // if (!send_escape && gamepad_combo_is_enabled(GamepadComboEscape)) {
+    //     send_escape = true;
+    //     LiSendKeyboardEvent(0x1B, KEY_ACTION_DOWN, 0);
+    // } else if (send_escape && !gamepad_combo_is_enabled(GamepadComboEscape)) {
+    //     send_escape = false;
+    //     LiSendKeyboardEvent(0x1B, KEY_ACTION_UP, 0);
+    // }
     
     // Gamepad
-    auto mapped_gamepad = GamepadMapper::mapper()->map(glfw_gamepad_state);
+    auto mapped_gamepad = glfw_gamepad_state;
+
+    unsigned char leftTrigger = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1) / 2;
+    unsigned char rightTrigger = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1) / 2;
+    short leftStickX = mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_X] * 0x7FFF;
+    short leftStickY = 0xFFFF - mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] * 0x7FFF;
+    short rightStickX = mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] * 0x7FFF;
+    short rightStickY = 0xFFFF - mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] * 0x7FFF;
+    
+    short buttonFlags = 0;
+
+    #define SET_GAME_PAD_STATE(LIMELIGHT_KEY, GAMEPAD_BUTTON) \
+        kHeld & GAMEPAD_BUTTON ? (buttonFlags |= LIMELIGHT_KEY) : (buttonFlags &= ~LIMELIGHT_KEY);
+    
+    SET_GAME_PAD_STATE(UP_FLAG, KEY_DUP);
+    SET_GAME_PAD_STATE(DOWN_FLAG, KEY_DDOWN);
+    SET_GAME_PAD_STATE(LEFT_FLAG, KEY_DLEFT);
+    SET_GAME_PAD_STATE(RIGHT_FLAG, KEY_DRIGHT);
+
+    SET_GAME_PAD_STATE(A_FLAG, KEY_B);
+    SET_GAME_PAD_STATE(B_FLAG, KEY_A);
+    SET_GAME_PAD_STATE(X_FLAG, KEY_Y);
+    SET_GAME_PAD_STATE(Y_FLAG, KEY_X);
+
+    SET_GAME_PAD_STATE(BACK_FLAG, KEY_MINUS);
+    SET_GAME_PAD_STATE(PLAY_FLAG, KEY_PLUS);
+    
+    SET_GAME_PAD_STATE(LB_FLAG, KEY_L);
+    SET_GAME_PAD_STATE(RB_FLAG, KEY_R);
+    
+    SET_GAME_PAD_STATE(LS_CLK_FLAG, KEY_LSTICK);
+    SET_GAME_PAD_STATE(RS_CLK_FLAG, KEY_RSTICK);
+
+    LiSendControllerEvent(
+        buttonFlags,
+        leftTrigger,
+        rightTrigger,
+        leftStickX,
+        leftStickY,
+        rightStickX,
+        rightStickY
+    );
+#else
+    auto mapped_gamepad = glfw_gamepad_state;// GamepadMapper::mapper()->map(glfw_gamepad_state);
     short buttonFlags = 0;
     unsigned char leftTrigger = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1) / 2;
     unsigned char rightTrigger = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER] + 1) / 2;
@@ -300,10 +349,10 @@ void InputController::send_to_stream() {
     SET_GAME_PAD_STATE(LS_CLK_FLAG, GLFW_GAMEPAD_BUTTON_LEFT_THUMB);
     SET_GAME_PAD_STATE(RS_CLK_FLAG, GLFW_GAMEPAD_BUTTON_RIGHT_THUMB);
     
-    SET_GAME_PAD_STATE(A_FLAG, GLFW_GAMEPAD_BUTTON_A);
-    SET_GAME_PAD_STATE(B_FLAG, GLFW_GAMEPAD_BUTTON_B);
-    SET_GAME_PAD_STATE(X_FLAG, GLFW_GAMEPAD_BUTTON_X);
-    SET_GAME_PAD_STATE(Y_FLAG, GLFW_GAMEPAD_BUTTON_Y);
+    SET_GAME_PAD_STATE(A_FLAG, GLFW_GAMEPAD_BUTTON_B);
+    SET_GAME_PAD_STATE(B_FLAG, GLFW_GAMEPAD_BUTTON_A);
+    SET_GAME_PAD_STATE(X_FLAG, GLFW_GAMEPAD_BUTTON_Y);
+    SET_GAME_PAD_STATE(Y_FLAG, GLFW_GAMEPAD_BUTTON_X);
     
     LiSendControllerEvent(
         buttonFlags,
@@ -314,4 +363,6 @@ void InputController::send_to_stream() {
         rightStickX,
         rightStickY
     );
+#endif
 }
+

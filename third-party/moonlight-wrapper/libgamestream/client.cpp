@@ -182,7 +182,6 @@ static int load_server_status(PSERVER_DATA server) {
         }
     }
     
-    lg::Logger::info("Client", "Server: \n%s, %i\n", server->hostname, server->paired);
     return ret;
 }
 

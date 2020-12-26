@@ -54,12 +54,12 @@ void fillList(brls::TabFrame* frame)
     brls::InputListItem* hostIpItem = new brls::InputListItem("main/add_host/buttons/host_ip"_i18n, "10.0.0.19", "");
     brls::ListItem* connectItem     = new brls::ListItem("main/add_host/buttons/connect"_i18n);
     connectItem->getClickEvent()->subscribe([hostIpItem, frame](brls::View* view) {
-        connectAndPair(hostIpItem->getValue(), [frame]() { fillList(frame); });
+        ui::connect(hostIpItem->getValue(), [frame]() { fillList(frame); });
     });
 
-    addHostTab->addView(hostIpItem);
-    addHostTab->addView(new brls::ListItemGroupSpacing());
     addHostTab->addView(connectItem);
+    addHostTab->addView(new brls::ListItemGroupSpacing());
+    addHostTab->addView(hostIpItem);
 
     auto hosts = Settings::settings()->hosts();
     if (hosts.size() > 0)
@@ -76,7 +76,6 @@ void fillList(brls::TabFrame* frame)
         }
         if (firstSepAdd)
         {
-            brls::Application::notify(std::to_string(frame->tabsCount() - (firstAdd ? 0 : 1)));
             frame->addSeparator(frame->tabsCount() - (firstAdd ? 0 : 1));
             firstSepAdd = false;
         }

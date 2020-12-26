@@ -152,8 +152,8 @@ class Application
      */
     static void cleanupNvgGlState();
 
-  private:
     inline static GLFWwindow* window;
+  private:
     inline static NVGcontext* vg;
 
     inline static std::string title;
