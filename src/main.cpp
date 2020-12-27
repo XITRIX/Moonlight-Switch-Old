@@ -23,11 +23,13 @@
 #include <HostTab.hpp>
 #include <Settings.hpp>
 #include <UIMainScreen.hpp>
+#include <UIIngameMenu.hpp>
 #include <borealis.hpp>
 #include <chrono>
 #include <ctime>
 #include <streaming/GameStreamClient.hpp>
 #include <string>
+#include <EZLogger.hpp>
 
 namespace i18n = brls::i18n; // for loadTranslations() and getStr()
 using namespace i18n::literals; // for _i18n
@@ -103,12 +105,17 @@ int main(int argc, char* argv[])
         brls::Logger::error("Unable to init Borealis application");
         return EXIT_FAILURE;
     }
-
+    
     // Create a sample view
     brls::TabFrame* rootFrame = new brls::TabFrame();
     rootFrame->setTitle("main/name"_i18n);
     rootFrame->setIcon(BOREALIS_ASSET("icon/borealis.jpg"));
-
+    
+    rootFrame->registerAction("Test", brls::Key::MINUS, []() {
+        auto test = new UIIngameMenu([](){});
+        Application::pushView(test);
+        return true;
+    });
     fillList(rootFrame);
 
     // Add the root view to the stack

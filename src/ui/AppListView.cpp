@@ -1,10 +1,17 @@
 #include "AppListView.hpp"
 #include <streaming/GameStreamClient.hpp>
 #include <ui/UIStreamView.hpp>
+#include <EZLogger.hpp>
+
+namespace i18n = brls::i18n; // for loadTranslations() and getStr()
+using namespace i18n::literals; // for _i18n
 
 AppListView::AppListView(Host host, PAPP_LIST apps)
     : AppletFrame(false, true)
 {
+    // registerAction("brls/hints/exit"_i18n, brls::Key::PLUS, [] { lg::Logger::warning("EXIT","Exiting 2"); brls::Application::quit(); return true; });
+    // registerAction("up"_i18n, brls::Key::L, [] { brls::Application::notify("TEST 2"); return true; });
+
     setTitle(host.hostname);
     auto listView = new brls::List();
 

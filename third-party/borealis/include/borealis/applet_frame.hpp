@@ -43,11 +43,6 @@ class AppletFrame : public View
 
     std::string subTitleLeft = "", subTitleRight = "";
 
-    View* icon = nullptr;
-    Hint* hint = nullptr;
-
-    View* contentView = nullptr;
-
     bool slideOut = false;
     bool slideIn  = false;
 
@@ -60,6 +55,11 @@ class AppletFrame : public View
 
     unsigned leftPadding  = 0;
     unsigned rightPadding = 0;
+
+    View* contentView = nullptr;
+
+    View* icon = nullptr;
+    Hint* hint = nullptr;
 
   public:
     AppletFrame(bool padLeft, bool padRight);

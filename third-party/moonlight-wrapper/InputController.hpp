@@ -1,4 +1,5 @@
 #include "GamepadMapper.hpp"
+#include <functional>
 #pragma once
 
 struct GLFWgamepadstate;
@@ -17,6 +18,7 @@ public:
     void handle_gamepad_event(GLFWgamepadstate& gamepad);
     void handle_rumple(unsigned short low_freq_motor, unsigned short high_freq_motor);
     void stop_rumple();
+    void menu_key_combo(std::function<void(void)> inflateMenuAction);
     
     bool gamepad_combo_is_enabled(GamepadCombo combo);
     

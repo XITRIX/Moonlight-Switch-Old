@@ -10,11 +10,12 @@
 #include "FFmpegVideoDecoder.hpp"
 #include "GLVideoRenderer.hpp"
 #include "InputController.hpp"
+#include "UIIngameMenu.hpp"
 
 UIStreamView::UIStreamView(const std::string& address, int app_id)
 {
     this->terminateByPlusButton = false;
-    registerAction("", brls::Key::MINUS, [this] { this->terminate(false); return true; });
+    setActionAvailable(brls::Key::PLUS, false);
 
     m_session = new MoonlightSession(address, app_id);
 
@@ -39,8 +40,9 @@ UIStreamView::UIStreamView(const std::string& address, int app_id)
         }
         else
         {
-            terminate(false);
-            showError(result.error());
+            showError(result.error(), [this]() {
+                this->terminate(false);
+            });
         }
     });
 }
@@ -51,18 +53,22 @@ UIStreamView::~UIStreamView()
     delete m_session;
 }
 
+brls::View* UIStreamView::getDefaultFocus()
+{
+    return this;
+}
+
 int dm_width = 0, dm_height = 0;
 double dx = 0, dy = 0;
 void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* fcn)
 {
     if (terminated)
         return;
+
     if (!m_session->is_active())
     {
         brls::Application::notify("Terminate");
-        Async::instance()->run([this]() {
-            this->terminate(false);
-        });
+        terminate(false);
         terminated = true;
         return;
     }
@@ -175,7 +181,6 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
     }
     else
     {
-        
     }
 
     // Gamepad
@@ -200,7 +205,40 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
     // {
     //     m_draw_stats = false;
     // }
-    InputController::controller()->send_to_stream();
+
+    static bool menuOverlay = false;
+    InputController::controller()->menu_key_combo([this]() {
+        if (!menuOverlay)
+        {
+            menuOverlay = true;
+            auto menu   = new UIIngameMenu([]() {
+                menuOverlay = false;
+            });
+            brls::Application::pushView(menu);
+            // auto dialog = new brls::Dialog("Do you want to close this app");
+            // dialog->addButton("Cancel", [dialog](auto view) {
+            //     dialog->close();
+            //     menuOverlay = false;
+            // });
+            // dialog->addButton("Quit", [this, dialog](auto view) {
+            //     dialog->close([this]() {
+            //         this->terminate(false);
+            //         menuOverlay = false;
+            //     });
+            // });
+            // dialog->addButton("Terminate", [this, dialog](auto view) {
+            //     dialog->close([this]() {
+            //         this->terminate(true);
+            //         menuOverlay = false;
+            //     });
+            // });
+            // dialog->setCancelable(false);
+            // dialog->open();
+        }
+    });
+
+    if (!menuOverlay)
+        InputController::controller()->send_to_stream();
 }
 
 void UIStreamView::terminate(bool close_app)

@@ -7,6 +7,10 @@
 
 static MoonlightSession* m_active_session = nullptr;
 
+MoonlightSession* MoonlightSession::get_active_session() {
+    return m_active_session;
+}
+
 MoonlightSession::MoonlightSession(const std::string &address, int app_id) {
     m_address = address;
     m_app_id = app_id;

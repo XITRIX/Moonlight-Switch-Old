@@ -791,8 +791,8 @@ void Application::pushView(View* view, ViewAnimation animation)
     bool wait    = animation == ViewAnimation::FADE; // wait for the old view animation to be done before showing the new one?
 
     view->registerAction("brls/hints/exit"_i18n, Key::PLUS, [view] { if (view->terminateByPlusButton) { Application::quit(); } return true; });
-    view->registerAction(
-        "FPS", Key::MINUS, [] { Application::toggleFramerateDisplay(); return true; }, true);
+    // view->registerAction(
+    //     "FPS", Key::MINUS, [] { Application::toggleFramerateDisplay(); return true; }, true);
 
     // Fade out animation
     if (fadeOut)

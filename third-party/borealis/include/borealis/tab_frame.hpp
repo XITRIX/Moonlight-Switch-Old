@@ -50,8 +50,9 @@ class TabFrame : public AppletFrame
 
     ~TabFrame();
 
-  private:
+  protected:
     Sidebar* sidebar;
+  private:
     BoxLayout* layout;
     View* rightPane = nullptr;
 

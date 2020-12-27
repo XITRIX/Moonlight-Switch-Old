@@ -11,6 +11,8 @@ struct SessionStats {
 
 class MoonlightSession {
 public:
+    static MoonlightSession* get_active_session();
+
     MoonlightSession(const std::string &address, int app_id);
     ~MoonlightSession();
 
@@ -81,3 +83,4 @@ private:
     
     SessionStats m_session_stats = {};
 };
+

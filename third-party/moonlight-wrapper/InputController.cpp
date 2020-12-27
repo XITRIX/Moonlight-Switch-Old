@@ -1,15 +1,14 @@
 #include "InputController.hpp"
 
+#include <GLFW/glfw3.h>
+
+#include <borealis.hpp>
+#include <chrono>
 #include <cstring>
 
 #include "Limelight.h"
 #include "Settings.hpp"
-// #include <nanogui/nanogui.h>
-// #include <nanogui/opengl.h>
-#include <GLFW/glfw3.h>
-#ifdef __SWITCH__
-#include <switch.h>
-#endif
+#include <streaming/MoonlightSession.hpp>
 
 #ifdef __SWITCH__
 #include <switch.h>
@@ -194,6 +193,27 @@ bool InputController::gamepad_trigger_is_enabled(int trigger)
     return glfw_gamepad_state.axes[trigger] > 0;
 }
 
+void InputController::menu_key_combo(std::function<void(void)> inflateMenuAction) 
+{
+    u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    static std::chrono::system_clock::time_point clock_counter;
+    static bool reset = false;
+    if (kHeld & KEY_L && kHeld & KEY_R && kHeld & KEY_PLUS && !reset)
+    {
+        auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - clock_counter);
+        if (duration.count() >= 1)
+        {
+            inflateMenuAction();
+            reset = true;
+        }
+    }
+    else if (!(kHeld & KEY_L) || !(kHeld & KEY_R) || !(kHeld & KEY_PLUS))
+    {
+        clock_counter = std::chrono::high_resolution_clock::now();
+        reset         = false;
+    }
+}
+
 void InputController::send_to_stream()
 {
 #ifdef __SWITCH__
@@ -293,7 +313,7 @@ void InputController::send_to_stream()
                 last_mouse_x = mouse_state.x;
                 last_mouse_y = mouse_state.y;
             }
-            
+
             if (kDown & KEY_ZR)
             {
                 is_released = false;
@@ -347,6 +367,7 @@ void InputController::send_to_stream()
     // }
 
     // Gamepad
+
     auto mapped_gamepad = glfw_gamepad_state;
 
     unsigned char leftTrigger  = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1) / 2;

@@ -11,7 +11,7 @@ public:
     void draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned height, brls::Style* style, brls::FrameContext* fcn) override;
     
     void terminate(bool close_app);
-    
+    brls::View* getDefaultFocus() override;
 private:
     GLFWgamepadstate glfw_gamepad_state;
     MoonlightSession* m_session;
