@@ -17,4 +17,5 @@ private:
     MoonlightSession* m_session;
     bool m_draw_stats = false;
     bool terminated = false;
+    void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 };

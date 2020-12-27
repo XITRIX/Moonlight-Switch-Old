@@ -209,6 +209,7 @@ void MoonlightSession::start(ServerCallback<bool> callback) {
     m_audio_callbacks.stop = audio_renderer_stop;
     m_audio_callbacks.cleanup = audio_renderer_cleanup;
     m_audio_callbacks.decodeAndPlaySample = audio_renderer_decode_and_play_sample;
+    m_audio_callbacks.capabilities = CAPABILITY_DIRECT_SUBMIT;
     
     if (m_audio_renderer) {
         m_audio_callbacks.capabilities = m_audio_renderer->capabilities();

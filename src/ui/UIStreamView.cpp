@@ -1,13 +1,15 @@
 #include "UIStreamView.hpp"
 
 #include <Async.hpp>
+#include <Settings.hpp>
 #include <UIError.hpp>
+#include <cstring>
+#include <streaming/MoonlightSession.hpp>
 
 #include "AudrenAudioRenderer.hpp"
 #include "FFmpegVideoDecoder.hpp"
 #include "GLVideoRenderer.hpp"
 #include "InputController.hpp"
-#include <cstring>
 
 UIStreamView::UIStreamView(const std::string& address, int app_id)
 {
@@ -74,20 +76,20 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
     // nvgFontSize(ctx, 20);
     // nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
 
-    nvgFontBlur(ctx, 3);
-    nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
-    // nvgFontFace(ctx, "icons");
-    // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
-    nvgFontFaceId(ctx, fcn->fontStash->regular);
-    auto text = ("x: " + std::to_string(dx) + ", y: " + std::to_string(dy) + ", width: " + std::to_string(dm_width) + ", height: " + std::to_string(dm_height)).c_str();
-    nvgText(ctx, 50, height - 50, text, NULL);
+    // nvgFontBlur(ctx, 3);
+    // nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
+    // // nvgFontFace(ctx, "icons");
+    // // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
+    // nvgFontFaceId(ctx, fcn->fontStash->regular);
+    // auto text = ("x: " + std::to_string(dx) + ", y: " + std::to_string(dy) + ", width: " + std::to_string(dm_width) + ", height: " + std::to_string(dm_height)).c_str();
+    // nvgText(ctx, 50, height - 50, text, NULL);
 
-    nvgFontBlur(ctx, 0);
-    nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-    // nvgFontFace(ctx, "icons");
-    // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
-    nvgFontFaceId(ctx, fcn->fontStash->regular);
-    nvgText(ctx, 50, height - 50, text, NULL);
+    // nvgFontBlur(ctx, 0);
+    // nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
+    // // nvgFontFace(ctx, "icons");
+    // // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
+    // nvgFontFaceId(ctx, fcn->fontStash->regular);
+    // nvgText(ctx, 50, height - 50, text, NULL);
 
     if (m_session->connection_status_is_poor())
     {
@@ -155,18 +157,26 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
     glfwSetCursorPosCallback(brls::Application::window, [](GLFWwindow* w, double x, double y) {
         int m_width, m_height;
         glfwGetWindowSize(w, &m_width, &m_height);
-        //x = x * 1980 / 1280;
-        //y = y * 1080 / 720;
+        // auto config = m_active_session->config();
+        x = x * 1920 / m_width;
+        y = y * 1080 / m_height;
         InputController::controller()->handle_cursor_event(1920, 1080, x, y);
-        dm_width  = m_width;
-        dm_height = m_height;
-        dx        = x;
-        dy        = y;
+        // dm_width  = m_width;
+        // dm_height = m_height;
+        // dx        = x;
+        // dy        = y;
     });
 
-    glfwSetMouseButtonCallback(brls::Application::window, [](GLFWwindow *w, int button, int action, int modifiers) {
-        InputController::controller()->handle_mouse_event(button, action, modifiers);
-    });
+    if (Settings::settings()->click_by_tap())
+    {
+        glfwSetMouseButtonCallback(brls::Application::window, [](GLFWwindow* w, int button, int action, int modifiers) {
+            InputController::controller()->handle_mouse_event(button, action, modifiers);
+        });
+    }
+    else
+    {
+        
+    }
 
     // Gamepad
     glfwGetGamepadState(GLFW_JOYSTICK_1, &glfw_gamepad_state);
