@@ -6,18 +6,25 @@
 #include <cstring>
 #include <streaming/MoonlightSession.hpp>
 
+#ifdef __SWITCH__
 #include "AudrenAudioRenderer.hpp"
+#else
+#include "DebugFileRecorderAudioRenderer.hpp"
+#endif
+
 #include "FFmpegVideoDecoder.hpp"
 #include "GLVideoRenderer.hpp"
 #include "InputController.hpp"
 #include "UIIngameMenu.hpp"
 
-UIStreamView::UIStreamView(const std::string& address, int app_id)
+UIStreamView::UIStreamView(const Host* host, PAPP_LIST app)
+    : host((Host*)host)
+    , app(app)
 {
     this->terminateByPlusButton = false;
     setActionAvailable(brls::Key::PLUS, false);
 
-    m_session = new MoonlightSession(address, app_id);
+    m_session = new MoonlightSession(host->address, app->id);
 
     m_session->set_video_decoder(new FFmpegVideoDecoder());
     m_session->set_video_renderer(new GLVideoRenderer());
@@ -49,6 +56,7 @@ UIStreamView::UIStreamView(const std::string& address, int app_id)
 
 UIStreamView::~UIStreamView()
 {
+    if (!terminated) { terminate(false); }
     brls::Application::notify("Destroy session");
     delete m_session;
 }
@@ -79,24 +87,6 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
 
     nvgRestore(ctx);
 
-    // nvgFontSize(ctx, 20);
-    // nvgTextAlign(ctx, NVG_ALIGN_LEFT | NVG_ALIGN_MIDDLE);
-
-    // nvgFontBlur(ctx, 3);
-    // nvgFillColor(ctx, nvgRGBA(0, 0, 0, 255));
-    // // nvgFontFace(ctx, "icons");
-    // // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
-    // nvgFontFaceId(ctx, fcn->fontStash->regular);
-    // auto text = ("x: " + std::to_string(dx) + ", y: " + std::to_string(dy) + ", width: " + std::to_string(dm_width) + ", height: " + std::to_string(dm_height)).c_str();
-    // nvgText(ctx, 50, height - 50, text, NULL);
-
-    // nvgFontBlur(ctx, 0);
-    // nvgFillColor(ctx, nvgRGBA(255, 255, 255, 255));
-    // // nvgFontFace(ctx, "icons");
-    // // nvgText(ctx, 20, height - 30, utf8(FA_EXCLAMATION_TRIANGLE).data(), NULL);
-    // nvgFontFaceId(ctx, fcn->fontStash->regular);
-    // nvgText(ctx, 50, height - 50, text, NULL);
-
     if (m_session->connection_status_is_poor())
     {
         nvgFontSize(ctx, 20);
@@ -117,7 +107,7 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
         nvgText(ctx, 50, height - 28, "Bad connection...", NULL);
     }
 
-    if (m_draw_stats)
+    if (draw_stats)
     {
         static char output[1024];
 
@@ -163,14 +153,9 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
     glfwSetCursorPosCallback(brls::Application::window, [](GLFWwindow* w, double x, double y) {
         int m_width, m_height;
         glfwGetWindowSize(w, &m_width, &m_height);
-        // auto config = m_active_session->config();
         x = x * 1920 / m_width;
         y = y * 1080 / m_height;
         InputController::controller()->handle_cursor_event(1920, 1080, x, y);
-        // dm_width  = m_width;
-        // dm_height = m_height;
-        // dx        = x;
-        // dy        = y;
     });
 
     if (Settings::settings()->click_by_tap())
@@ -179,61 +164,23 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
             InputController::controller()->handle_mouse_event(button, action, modifiers);
         });
     }
-    else
-    {
-    }
 
     // Gamepad
     glfwGetGamepadState(GLFW_JOYSTICK_1, &glfw_gamepad_state);
     InputController::controller()->handle_gamepad_event(glfw_gamepad_state);
-
-    // TODO: Get out of here...
-    // if (InputController::controller()->gamepad_combo_is_enabled(GamepadComboExitAndClose))
-    // {
-    //     this->terminate(true);
-    // }
-    // else if (InputController::controller()->gamepad_combo_is_enabled(GamepadComboExit))
-    // {
-    //     this->terminate(false);
-    // }
-
-    // if (!m_draw_stats && InputController::controller()->gamepad_combo_is_enabled(GamepadComboShowStats))
-    // {
-    //     m_draw_stats = true;
-    // }
-    // else if (m_draw_stats && InputController::controller()->gamepad_combo_is_enabled(GamepadComboHideStats))
-    // {
-    //     m_draw_stats = false;
-    // }
 
     static bool menuOverlay = false;
     InputController::controller()->menu_key_combo([this]() {
         if (!menuOverlay)
         {
             menuOverlay = true;
-            auto menu   = new UIIngameMenu([]() {
-                menuOverlay = false;
+            auto menu   = new UIIngameMenu(this, []() {
+                Async::run([](){
+                    usleep(100000);
+                    menuOverlay = false;
+                });
             });
             brls::Application::pushView(menu);
-            // auto dialog = new brls::Dialog("Do you want to close this app");
-            // dialog->addButton("Cancel", [dialog](auto view) {
-            //     dialog->close();
-            //     menuOverlay = false;
-            // });
-            // dialog->addButton("Quit", [this, dialog](auto view) {
-            //     dialog->close([this]() {
-            //         this->terminate(false);
-            //         menuOverlay = false;
-            //     });
-            // });
-            // dialog->addButton("Terminate", [this, dialog](auto view) {
-            //     dialog->close([this]() {
-            //         this->terminate(true);
-            //         menuOverlay = false;
-            //     });
-            // });
-            // dialog->setCancelable(false);
-            // dialog->open();
         }
     });
 

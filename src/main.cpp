@@ -28,6 +28,7 @@
 #include <chrono>
 #include <ctime>
 #include <streaming/GameStreamClient.hpp>
+#include <streaming/MoonlightSession.hpp>
 #include <string>
 #include <EZLogger.hpp>
 
@@ -111,11 +112,11 @@ int main(int argc, char* argv[])
     rootFrame->setTitle("main/name"_i18n);
     rootFrame->setIcon(BOREALIS_ASSET("icon/borealis.jpg"));
     
-    rootFrame->registerAction("Test", brls::Key::MINUS, []() {
-        auto test = new UIIngameMenu([](){});
-        Application::pushView(test);
-        return true;
-    });
+    // rootFrame->registerAction("Test", brls::Key::MINUS, []() {
+    //     auto test = new UIIngameMenu([](){});
+    //     Application::pushView(test);
+    //     return true;
+    // });
     fillList(rootFrame);
 
     // Add the root view to the stack
@@ -126,6 +127,9 @@ int main(int argc, char* argv[])
         ;
 
     GameStreamClient::client()->stop();
+    if (MoonlightSession::get_active_session()) {
+        MoonlightSession::get_active_session()->stop(false);
+    }
 
     // Exit
     return EXIT_SUCCESS;

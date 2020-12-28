@@ -22,12 +22,12 @@ GameStreamClient::GameStreamClient()
 
 void GameStreamClient::stop()
 {
-    Async::instance()->stop();
+    Async::stop();
 }
 
 void GameStreamClient::wake_up_host(const Host& host, ServerCallback<bool> callback)
 {
-    Async::instance()->run([this, host, callback] {
+    Async::run([this, host, callback] {
         if (WakeOnLanManager::manager()->wake_up_host(host))
         {
             // usleep(5'000'000);
@@ -46,7 +46,7 @@ void GameStreamClient::connect(const std::string& address, ServerCallback<SERVER
 {
     m_server_data[address] = SERVER_DATA();
 
-    Async::instance()->run([this, address, callback] {
+    Async::run([this, address, callback] {
         // TODO: mem leak here :(
         int status = gs_init(&m_server_data[address], (char*)(new std::string(address))->c_str(), Settings::settings()->key_dir().c_str(), Settings::settings()->ignore_unsupported_resolutions());
 
@@ -76,7 +76,7 @@ void GameStreamClient::pair(const std::string& address, const std::string& pin, 
         return;
     }
 
-    Async::instance()->run([this, address, pin, callback] {
+    Async::run([this, address, pin, callback] {
         int status = gs_pair(&m_server_data[address], (char*)pin.c_str());
         // nanogui::async([callback, status] {
         if (status == GS_OK)
@@ -99,7 +99,7 @@ void GameStreamClient::unpair(const std::string& address, ServerCallback<bool> c
         return;
     }
 
-    Async::instance()->run([this, address, callback] {
+    Async::run([this, address, callback] {
         int status = gs_unpair(&m_server_data[address]);
         m_server_data.erase(address);
         if (status == GS_OK)
@@ -119,7 +119,7 @@ void GameStreamClient::applist(const std::string& address, ServerCallback<PAPP_L
 
     m_app_list[address] = PAPP_LIST();
 
-    Async::instance()->run([this, address, callback] {
+    Async::run([this, address, callback] {
         int status = gs_applist(&m_server_data[address], &m_app_list[address]);
 
         // nanogui::async([this, address, callback, status] {
@@ -143,7 +143,7 @@ void GameStreamClient::app_boxart(const std::string& address, int app_id, Server
         return;
     }
 
-    Async::instance()->run([this, address, app_id, callback] {
+    Async::run([this, address, app_id, callback] {
         Data data;
         int status = gs_app_boxart(&m_server_data[address], app_id, &data);
 
@@ -170,7 +170,7 @@ void GameStreamClient::start(const std::string& address, STREAM_CONFIGURATION co
 
     m_config = config;
 
-    Async::instance()->run([this, address, app_id, callback] {
+    Async::run([this, address, app_id, callback] {
         int status = gs_start_app(&m_server_data[address], &m_config, app_id, Settings::settings()->sops(), Settings::settings()->play_audio(), 0x1);
 
         // nanogui::async([this, callback, status] {
@@ -196,7 +196,7 @@ void GameStreamClient::quit(const std::string& address, ServerCallback<bool> cal
 
     auto server_data = m_server_data[address];
 
-    Async::instance()->run([this, server_data, callback] {
+    Async::run([this, server_data, callback] {
         int status = gs_quit_app((PSERVER_DATA)&server_data);
 
         // nanogui::async([this, callback, status] {

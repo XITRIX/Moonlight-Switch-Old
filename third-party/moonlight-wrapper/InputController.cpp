@@ -198,10 +198,11 @@ void InputController::menu_key_combo(std::function<void(void)> inflateMenuAction
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
     static std::chrono::system_clock::time_point clock_counter;
     static bool reset = false;
-    if (kHeld & KEY_L && kHeld & KEY_R && kHeld & KEY_PLUS && !reset)
+    // if (kHeld & KEY_L && kHeld & KEY_R && kHeld & KEY_PLUS && !reset)
+    if (kHeld & KEY_PLUS && !reset)
     {
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - clock_counter);
-        if (duration.count() >= 1)
+        if (duration.count() >= 2)
         {
             inflateMenuAction();
             reset = true;
@@ -275,23 +276,20 @@ void InputController::send_to_stream()
     }
     else
     {
-        // bool move_mouse = !gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_LEFT_TRIGGER) && !gamepad_trigger_is_enabled(NANOGUI_GAMEPAD_AXIS_RIGHT_TRIGGER);
+        // static bool reset      = false;
 
-        static bool move_mouse = false;
-        static bool reset      = false;
+        // if (!(kHeld & KEY_MINUS) && !(kHeld & KEY_PLUS) && reset)
+        // {
+        //     reset = false;
+        // }
 
-        if (!(kHeld & KEY_MINUS) && !(kHeld & KEY_PLUS) && reset)
-        {
-            reset = false;
-        }
+        // if ((kHeld & KEY_MINUS) && (kHeld & KEY_PLUS) && !reset)
+        // {
+        //     mouse_mode_enabled = !mouse_mode_enabled;
+        //     reset      = true;
+        // }
 
-        if ((kHeld & KEY_MINUS) && (kHeld & KEY_PLUS) && !reset)
-        {
-            move_mouse = !move_mouse;
-            reset      = true;
-        }
-
-        if (move_mouse)
+        if (mouse_mode_enabled)
         {
             if (kDown & KEY_TOUCH)
             {
@@ -376,6 +374,11 @@ void InputController::send_to_stream()
     short leftStickY           = 0xFFFF - mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_Y] * 0x7FFF;
     short rightStickX          = mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_X] * 0x7FFF;
     short rightStickY          = 0xFFFF - mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_RIGHT_Y] * 0x7FFF;
+
+    if (mouse_mode_enabled) {
+        leftTrigger  = 0;
+        rightTrigger = 0;
+    }
 
     short buttonFlags = 0;
 

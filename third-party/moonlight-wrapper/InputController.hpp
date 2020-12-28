@@ -10,6 +10,7 @@ public:
         static InputController controller;
         return &controller;
     }
+    bool mouse_mode_enabled;
     
     void handle_cursor_event(int width, int height, int x, int y);
     void handle_mouse_event(int button, int action, int modifiers);

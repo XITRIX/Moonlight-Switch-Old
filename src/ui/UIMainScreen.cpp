@@ -63,7 +63,6 @@ void ui::connectAndPair(std::string address, ServerCallback<Host> connectResult)
 void ui::apps(Host host)
 {
     GameStreamClient::client()->applist(host.address, [host](auto result) {
-        brls::Application::notify(std::to_string(result.isSuccess()));
         if (result.isSuccess())
         {
             brls::Application::pushView(new AppListView(host, result.value()));

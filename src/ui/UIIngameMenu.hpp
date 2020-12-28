@@ -1,5 +1,6 @@
 #include <borealis.hpp>
 #include <functional>
+#include "UIStreamView.hpp"
 #pragma once
 
 using namespace brls;
@@ -7,8 +8,10 @@ using namespace brls;
 class UIIngameMenu: public brls::View {
 private:
     TabFrame* tabFrame;
+    UIStreamView* streamView;
 public:
-    UIIngameMenu(std::function<void(void)> closeAction);
+    UIIngameMenu(UIStreamView* streamView, std::function<void(void)> closeAction);
+    ~UIIngameMenu();
 
     std::function<void(void)> closeAction;
 

@@ -9,9 +9,6 @@ using namespace i18n::literals; // for _i18n
 AppListView::AppListView(Host host, PAPP_LIST apps)
     : AppletFrame(false, true)
 {
-    // registerAction("brls/hints/exit"_i18n, brls::Key::PLUS, [] { lg::Logger::warning("EXIT","Exiting 2"); brls::Application::quit(); return true; });
-    // registerAction("up"_i18n, brls::Key::L, [] { brls::Application::notify("TEST 2"); return true; });
-
     setTitle(host.hostname);
     auto listView = new brls::List();
 
@@ -20,7 +17,7 @@ AppListView::AppListView(Host host, PAPP_LIST apps)
     {
         auto appItem = new brls::ListItem(app->name);
         appItem->getClickEvent()->subscribe([host, app](auto view) {
-            auto stream = new UIStreamView(host.address, app->id);
+            auto stream = new UIStreamView(&host, (PAPP_LIST)app);
             brls::Application::pushView(stream);
         });
         listView->addView(appItem);

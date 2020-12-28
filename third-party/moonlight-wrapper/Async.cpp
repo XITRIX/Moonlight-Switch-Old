@@ -8,9 +8,10 @@
 static std::mutex m_async_mutex;
 static std::vector<std::function<void()>> m_tasks;
 
-static volatile bool task_loop_active = true;
+static volatile bool task_loop_active = false;
 
 static void task_loop() {
+    task_loop_active = true;
     while (task_loop_active) {
         std::vector<std::function<void()>> m_tasks_copy; {
             std::lock_guard<std::mutex> guard(m_async_mutex);
@@ -58,6 +59,9 @@ void perform_async(std::function<void()> task) {
 }
 
 void Async::run(std::function<void()> task) {
+    if (!task_loop_active) {
+        start_task_loop();
+    }
     perform_async(task);
 }
 
@@ -68,8 +72,4 @@ void Async::stop() {
     threadWaitForExit(&task_loop_thread);
     threadClose(&task_loop_thread);
 #endif
-}
-
-Async::Async() {
-    start_task_loop();
 }

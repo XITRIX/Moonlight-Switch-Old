@@ -10,7 +10,7 @@ moonlight_wrapper_files = files(
     'libgamestream/http.cpp',
     'libgamestream/xml.cpp',
 
-    'streaming/audio/AudrenAudioRenderer.cpp',
+    # 'streaming/audio/AudrenAudioRenderer.cpp',
     'streaming/audio/DebugFileRecorderAudioRenderer.cpp',
 
     'streaming/ffmpeg/FFmpegVideoDecoder.cpp',
