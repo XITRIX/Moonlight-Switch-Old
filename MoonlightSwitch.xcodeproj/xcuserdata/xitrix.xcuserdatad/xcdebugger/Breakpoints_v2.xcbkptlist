@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bucket
+   uuid = "2953EC04-C295-48D2-95F7-6F19F01F8310"
+   type = "1"
+   version = "2.0">
+   <Breakpoints>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "86A3E0FB-0D7F-4E80-ADE6-E1BBC63FB3C7"
+            shouldBeEnabled = "No"
+            condition = "menuButton == true"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "third-party/moonlight-wrapper/InputController.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "210"
+            endingLineNumber = "210"
+            landmarkName = "InputController::menu_key_combo(inflateMenuAction)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+   </Breakpoints>
+</Bucket>

@@ -195,11 +195,19 @@ bool InputController::gamepad_trigger_is_enabled(int trigger)
 
 void InputController::menu_key_combo(std::function<void(void)> inflateMenuAction) 
 {
+    bool menuButton = false;
+#ifdef __SWITCH__
     u64 kHeld = hidKeysHeld(CONTROLLER_P1_AUTO);
+    // menuButton = kHeld & KEY_L && kHeld & KEY_R && kHeld & KEY_PLUS && !reset;
+    menuButton = kHeld & KEY_PLUS;
     static std::chrono::system_clock::time_point clock_counter;
+#else
+    static std::chrono::steady_clock::time_point clock_counter;
+    menuButton = glfwGetKey(brls::Application::window, GLFW_KEY_ESCAPE) ||
+                glfw_gamepad_state.buttons[GLFW_GAMEPAD_BUTTON_START];
+#endif
     static bool reset = false;
-    // if (kHeld & KEY_L && kHeld & KEY_R && kHeld & KEY_PLUS && !reset)
-    if (kHeld & KEY_PLUS && !reset)
+    if (menuButton && !reset)
     {
         auto duration = std::chrono::duration_cast<std::chrono::seconds>(std::chrono::high_resolution_clock::now() - clock_counter);
         if (duration.count() >= 2)
@@ -208,7 +216,7 @@ void InputController::menu_key_combo(std::function<void(void)> inflateMenuAction
             reset = true;
         }
     }
-    else if (!(kHeld & KEY_L) || !(kHeld & KEY_R) || !(kHeld & KEY_PLUS))
+    else if (!menuButton)
     {
         clock_counter = std::chrono::high_resolution_clock::now();
         reset         = false;
@@ -365,7 +373,6 @@ void InputController::send_to_stream()
     // }
 
     // Gamepad
-
     auto mapped_gamepad = glfw_gamepad_state;
 
     unsigned char leftTrigger  = 0xFFFF * (mapped_gamepad.axes[GLFW_GAMEPAD_AXIS_LEFT_TRIGGER] + 1) / 2;
@@ -444,10 +451,10 @@ void InputController::send_to_stream()
     SET_GAME_PAD_STATE(LS_CLK_FLAG, GLFW_GAMEPAD_BUTTON_LEFT_THUMB);
     SET_GAME_PAD_STATE(RS_CLK_FLAG, GLFW_GAMEPAD_BUTTON_RIGHT_THUMB);
 
-    SET_GAME_PAD_STATE(A_FLAG, GLFW_GAMEPAD_BUTTON_B);
-    SET_GAME_PAD_STATE(B_FLAG, GLFW_GAMEPAD_BUTTON_A);
-    SET_GAME_PAD_STATE(X_FLAG, GLFW_GAMEPAD_BUTTON_Y);
-    SET_GAME_PAD_STATE(Y_FLAG, GLFW_GAMEPAD_BUTTON_X);
+    SET_GAME_PAD_STATE(A_FLAG, GLFW_GAMEPAD_BUTTON_A);
+    SET_GAME_PAD_STATE(B_FLAG, GLFW_GAMEPAD_BUTTON_B);
+    SET_GAME_PAD_STATE(X_FLAG, GLFW_GAMEPAD_BUTTON_X);
+    SET_GAME_PAD_STATE(Y_FLAG, GLFW_GAMEPAD_BUTTON_Y);
 
     LiSendControllerEvent(
         buttonFlags,

@@ -22,5 +22,6 @@ private:
     GLFWgamepadstate glfw_gamepad_state;
     MoonlightSession* m_session;
     bool terminated = false;
+    void restart_connection();
     void cursor_pos_callback(GLFWwindow* window, double xpos, double ypos);
 };

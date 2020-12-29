@@ -22,7 +22,6 @@
 #ifndef BOREALIS_RESOURCES
 #error BOREALIS_RESOURCES define missing
 #endif
-#define BOREALIS_ASSET(_str) BOREALIS_RESOURCES _str
 
 // Library
 #include <borealis/absolute_layout.hpp>
@@ -58,3 +57,12 @@
 #include <borealis/theme.hpp>
 #include <borealis/thumbnail_frame.hpp>
 #include <borealis/view.hpp>
+#include <borealis/assets.hpp>
+
+#include <cstring>
+#ifdef __SWITCH__
+#define BOREALIS_ASSET(_str) BOREALIS_RESOURCES _str
+#else
+#define BOREALIS_ASSET(_str) "./resources/" _str
+#endif
+

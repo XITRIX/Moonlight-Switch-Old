@@ -3,7 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __SWITCH__
 #include <malloc.h>
+#else
+#include <malloc/malloc.h>
+#endif
+
 #include <inttypes.h>
 
 static const uint8_t m_sink_channels[] = { 0, 1 };

@@ -1,11 +1,14 @@
 #include "UIStreamView.hpp"
 
+#include <unistd.h>
+
 #include <Async.hpp>
 #include <Settings.hpp>
 #include <UIError.hpp>
 #include <cstring>
 #include <streaming/MoonlightSession.hpp>
 
+#include "SDLAudioRenderer.hpp"
 #ifdef __SWITCH__
 #include "AudrenAudioRenderer.hpp"
 #else
@@ -29,11 +32,12 @@ UIStreamView::UIStreamView(const Host* host, PAPP_LIST app)
     m_session->set_video_decoder(new FFmpegVideoDecoder());
     m_session->set_video_renderer(new GLVideoRenderer());
 
-#ifdef __SWITCH__
-    m_session->set_audio_renderer(new AudrenAudioRenderer());
-#else
-    m_session->set_audio_renderer(new DebugFileRecorderAudioRenderer(false));
-#endif
+//#ifdef __SWITCH__
+//    m_session->set_audio_renderer(new AudrenAudioRenderer());
+//#else
+    m_session->set_audio_renderer(new SDLAudioRenderer());
+//    m_session->set_audio_renderer(new DebugFileRecorderAudioRenderer(false));
+//#endif
 
     m_session->start([this](auto result) {
         // if (m_loader) {
@@ -41,11 +45,7 @@ UIStreamView::UIStreamView(const Host* host, PAPP_LIST app)
         //     m_loader = NULL;
         // }
 
-        if (result.isSuccess())
-        {
-            //
-        }
-        else
+        if (!result.isSuccess())
         {
             showError(result.error(), [this]() {
                 this->terminate(false);
@@ -56,7 +56,10 @@ UIStreamView::UIStreamView(const Host* host, PAPP_LIST app)
 
 UIStreamView::~UIStreamView()
 {
-    if (!terminated) { terminate(false); }
+    if (!terminated)
+    {
+        terminate(false);
+    }
     brls::Application::notify("Destroy session");
     delete m_session;
 }
@@ -64,6 +67,19 @@ UIStreamView::~UIStreamView()
 brls::View* UIStreamView::getDefaultFocus()
 {
     return this;
+}
+
+void UIStreamView::restart_connection()
+{
+    m_session->stop(false);
+    m_session->start([this](auto result) {
+        if (!result.isSuccess())
+        {
+            showError(result.error(), [this]() {
+                this->terminate(false);
+            });
+        }
+    });
 }
 
 int dm_width = 0, dm_height = 0;
@@ -79,6 +95,11 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
         terminate(false);
         terminated = true;
         return;
+    }
+
+    if (m_session->session_stats()->video_decode_stats.network_dropped_frames > 30)
+    {
+        // restart_connection();
     }
 
     nvgSave(ctx);
@@ -175,7 +196,7 @@ void UIStreamView::draw(NVGcontext* ctx, int x, int y, unsigned width, unsigned 
         {
             menuOverlay = true;
             auto menu   = new UIIngameMenu(this, []() {
-                Async::run([](){
+                Async::run([]() {
                     usleep(100000);
                     menuOverlay = false;
                 });

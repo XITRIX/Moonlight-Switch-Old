@@ -4,6 +4,7 @@
 #include <mutex>
 #include <algorithm>
 #include <vector>
+#include <unistd.h>
 
 static std::mutex m_async_mutex;
 static std::vector<std::function<void()>> m_tasks;

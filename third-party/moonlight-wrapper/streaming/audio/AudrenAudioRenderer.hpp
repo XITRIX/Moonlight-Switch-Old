@@ -1,3 +1,4 @@
+#ifdef __SWITCH__
 #include "IAudioRenderer.hpp"
 #include <opus/opus_multistream.h>
 #include <switch.h>
@@ -40,3 +41,4 @@ private:
     const int m_samples_per_frame = AUDREN_SAMPLES_PER_FRAME_48KHZ;
     const int m_latency = 5;
 };
+#endif

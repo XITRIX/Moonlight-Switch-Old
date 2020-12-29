@@ -744,6 +744,7 @@ void Application::popView(ViewAnimation animation, std::function<void(void)> cb)
 
             if (newLast->isHidden())
             {
+
                 newLast->willAppear(false);
                 newLast->show(cb, true, animation);
             }

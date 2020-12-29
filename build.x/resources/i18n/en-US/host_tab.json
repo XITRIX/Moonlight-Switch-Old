@@ -1,0 +1,7 @@
+{
+    "buttons": {
+        "connect": "Connect",
+        "wakeup": "Wakeup",
+        "unpair": "Unpair"
+    }
+}
